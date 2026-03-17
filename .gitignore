@@ -1,0 +1,7 @@
+# Dependências (pnpm)
+node_modules/
+.pnpm-debug.log*
+
+# Sistema Operativo
+.DS_Store
+Thumbs.db
