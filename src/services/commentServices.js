@@ -30,7 +30,7 @@ export const createComment = (taskId, userId, content) => {
     const parsedUserId = Number.parseInt(userId, 10);
 
     if (Number.isNaN(parsedTaskId) || Number.isNaN(parsedUserId) || !content) {
-        return { error: 'taskId, userId e conteudo são obrigatórios', status: 400 };
+        return { error: 'taskId, userId e content são obrigatórios', status: 400 };
     }
 
     const task = getTaskById(parsedTaskId);
@@ -47,8 +47,8 @@ export const createComment = (taskId, userId, content) => {
         id: comments.length + 1,
         taskId: parsedTaskId,
         userId: parsedUserId,
-        createContent: content,
-        createdDate: new Date().toISOString()
+        content,
+        createdAt: new Date().toISOString()
     };
 
     comments.push(newComment);
