@@ -92,6 +92,7 @@ export const postTaskTag = (req, res) => {
 
 // cria um comentário numa tarefa
 export const postTaskComment = (req, res) => {
+    const { id } = req.params;
     const { userId, content } = req.body;
     const result = commentService.createComment(id, userId, content);
     if (result.error) {
