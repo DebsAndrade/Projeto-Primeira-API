@@ -47,7 +47,7 @@ export const createTask = (title, category, nameResponsible) => {
         category,
         nameResponsible,
         done: false,
-        dateConclusion: formatDateYMD() // quero formatar esta data para YYYY-MM-DD no controller
+        dateConclusion: formatDateYMD() // aqui eu formato a data para YYYY-MM-DD no controller
     };
     tasks.push(newTask);
     return newTask;
