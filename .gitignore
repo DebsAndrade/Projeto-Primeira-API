@@ -1,6 +1,7 @@
 # Dependências (pnpm)
 node_modules/
 .pnpm-debug.log*
+.env
 
 # Sistema Operativo
 .DS_Store
