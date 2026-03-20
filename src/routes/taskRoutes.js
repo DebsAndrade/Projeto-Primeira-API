@@ -8,7 +8,9 @@ import {
 	deleteTask,
 	postTaskTag,
 	postTaskComment,
-	getTaskComments
+	getTaskComments,
+	putTaskComment,
+	deleteTaskComment
 } from '../controllers/taskController.js';
 import { checkTaskExists } from '../middlewares/checkTaskExists.js';
 
@@ -25,5 +27,7 @@ router.delete('/:id', checkTaskExists, deleteTask);
 router.post('/:id/tags', checkTaskExists, postTaskTag);
 router.post('/:id/comments', checkTaskExists, postTaskComment);
 router.get('/:id/comments', checkTaskExists, getTaskComments);
+router.put('/:id/comments/:commentId', checkTaskExists, putTaskComment);
+router.delete('/:id/comments/:commentId', checkTaskExists, deleteTaskComment);
 
 export default router;
