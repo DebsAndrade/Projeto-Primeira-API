@@ -170,10 +170,10 @@ export const removeTaskTagRelationsByTagId = async (tagId) => {
 export const getTasksByTagId = async (tagId) => {
     const [rows] = await pool.query(
         `SELECT t.id, t.title, t.category, t.done, t.date_conclusion, t.user_id, t.created_at
-         FROM tasks t
-         INNER JOIN task_tags tt ON tt.task_id = t.id
-         WHERE tt.tag_id = ?
-         ORDER BY t.id ASC`,
+        FROM tasks t
+        INNER JOIN task_tags tt ON tt.task_id = t.id
+        WHERE tt.tag_id = ?
+        ORDER BY t.id ASC`,
         [tagId]
     );
 
@@ -196,10 +196,10 @@ export const getTaskStats = async () => {
         `SELECT
             COUNT(*) AS total,
             SUM(CASE WHEN done = 1 THEN 1 ELSE 0 END) AS finished
-         FROM tasks`
+        FROM tasks`
     );
 
-    const total = Number(rows[0].total) || 0;
+    const total = Number(rows[0].total) || 0; // Isso é para garantir que, se vier nulo ou valor inesperado, vire 0.
     const finished = Number(rows[0].finished) || 0;
 
     return {
