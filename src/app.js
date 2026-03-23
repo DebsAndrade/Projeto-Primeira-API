@@ -6,7 +6,6 @@ import taskRoutes from './routes/taskRoutes.js';
 import tagRoutes from './routes/tagRoutes.js';
 // importa o middleware de log
 import { loggerMiddleware } from './middlewares/loggerMiddleware.js';
-import { testDbConnection } from './db.js';
 
 // cria a aplicação express
 const app = express();
@@ -26,9 +25,6 @@ const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
     try {
-        await testDbConnection();
-        console.log('MySQL conectado com sucesso');
-
         app.listen(PORT, () => {
             console.log(`Servidor a correr em http://localhost:${PORT}`);
         });
