@@ -3,19 +3,11 @@ import pool from '../db.js';
 import { getTaskById } from './taskServices.js';
 import { getUserById } from './userServices.js';
 
-const mapComment = (row) => ({
-    id: row.id,
-    taskId: row.task_id,
-    userId: row.user_id,
-    content: row.content,
-    createdAt: row.created_at
-});
-
 // busca comentários de uma tarefa
 export const getComments = async (taskId) => {
     if (!taskId) {
         const [rows] = await pool.query('SELECT id, task_id, user_id, content, created_at FROM comments ORDER BY created_at ASC');
-        return rows.map(mapComment);
+        return rows;
     }
 
     const [rows] = await pool.query(
@@ -23,7 +15,7 @@ export const getComments = async (taskId) => {
         [taskId]
     );
 
-    return rows.map(mapComment);
+    return rows;
 };
 
 // busca comentários por ID da tarefa com validação
@@ -40,7 +32,7 @@ export const getCommentsByTaskId = async (taskId) => {
         [parsedTaskId]
     );
 
-    const taskComments = rows.map(mapComment);
+    const taskComments = rows;
     return { data: taskComments, status: 200 };
 };
 
@@ -73,7 +65,7 @@ export const createComment = async (taskId, userId, content) => {
         [result.insertId]
     );
 
-    const newComment = mapComment(rows[0]);
+    const newComment = rows[0];
     return { data: newComment, status: 201 };
 };
 
@@ -105,7 +97,7 @@ export const updateComment = async (taskId, commentId, content) => {
         [parsedCommentId]
     );
 
-    return { data: mapComment(rows[0]), status: 200 };
+    return { data: rows[0], status: 200 };
 };
 
 // apaga um comentário de uma tarefa

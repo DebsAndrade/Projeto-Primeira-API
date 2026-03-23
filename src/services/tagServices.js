@@ -1,21 +1,15 @@
 import pool from '../db.js';
 
-const mapTag = (row) => ({
-    id: row.id,
-    name: row.name,
-    createdAt: row.created_at
-});
-
 // retorna todas as tags
 export const getAllTags = async () => {
     const [rows] = await pool.query('SELECT id, name, created_at FROM tags ORDER BY id ASC');
-    return rows.map(mapTag);
+    return rows;
 };
 
 // busca uma tag pelo ID
 export const getTagById = async (id) => {
     const [rows] = await pool.query('SELECT id, name, created_at FROM tags WHERE id = ?', [id]);
-    return rows[0] ? mapTag(rows[0]) : null;
+    return rows[0] || null;
 };
 
 // cria uma nova tag
