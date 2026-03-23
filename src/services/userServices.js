@@ -2,7 +2,7 @@ import pool from '../db.js';
 
 // busca todos os utilizadores com filtros opcionais
 export const getAllUsers = async ({ sort, search } = {}) => {
-    let query = 'SELECT id, name, email, active, created_at FROM users WHERE 1=1';
+    let query = 'SELECT * FROM users';
     const params = [];
 
     // filtro por search no nome

@@ -1,71 +1,9 @@
 import pool from '../db.js';
 import { getUserById } from './userServices.js';
 
-const mapTask = (row) => ({
-    id: row.id,
-    title: row.title,
-    category: row.category,
-    done: Boolean(row.done),
-    dateConclusion: row.date_conclusion,
-    userId: row.user_id,
-    createdAt: row.created_at
-});
-
-const addField = (fields, values, column, value) => {
-    fields.push(`${column} = ?`);
-    values.push(value);
-};
-
-const addSimpleTaskFields = (updates, fields, values) => {
-    if (updates.title !== undefined) {
-        addField(fields, values, 'title', updates.title);
-    }
-
-    if (updates.category !== undefined) {
-        addField(fields, values, 'category', updates.category);
-    }
-
-    if (updates.dateConclusion !== undefined) {
-        addField(fields, values, 'date_conclusion', updates.dateConclusion || null);
-    }
-};
-
-const addDoneField = (updates, fields, values) => {
-    if (updates.done === undefined) {
-        return;
-    }
-
-    addField(fields, values, 'done', updates.done ? 1 : 0);
-
-    if (updates.dateConclusion !== undefined) {
-        return;
-    }
-
-    fields.push(updates.done ? 'date_conclusion = CURDATE()' : 'date_conclusion = NULL');
-};
-
-const addUserField = async (updates, fields, values) => {
-    if (updates.userId === undefined) {
-        return null;
-    }
-
-    const parsedUserId = Number.parseInt(updates.userId, 10);
-    if (Number.isNaN(parsedUserId)) {
-        return { error: 'userId deve ser número', status: 400 };
-    }
-
-    const user = await getUserById(parsedUserId);
-    if (!user) {
-        return { error: 'Utilizador não encontrado', status: 404 };
-    }
-
-    addField(fields, values, 'user_id', parsedUserId);
-    return null;
-};
-
 // busca todas as tarefas com possibilidade de ordenar e filtrar
 export const getAllTasks = async ({ sort, search } = {}) => {
-    let query = 'SELECT id, title, category, done, date_conclusion, user_id, created_at FROM tasks WHERE 1=1';
+    let query = 'SELECT * FROM tasks';
     const params = [];
 
     if (search) {
@@ -80,7 +18,7 @@ export const getAllTasks = async ({ sort, search } = {}) => {
     }
 
     const [rows] = await pool.query(query, params);
-    return rows.map(mapTask);
+    return rows;
 };
 
 // busca uma tarefa pelo ID
@@ -95,7 +33,7 @@ export const getTaskById = async (id) => {
         [parsedId]
     );
 
-    return rows[0] ? mapTask(rows[0]) : null;
+    return rows[0] || null;
 };
 
 // cria uma nova tarefa
@@ -122,23 +60,62 @@ export const createTask = async (title, category, userId) => {
 
 // atualiza os dados de uma tarefa
 export const updateTask = async (id, updates) => {
+    let query = 'UPDATE tasks SET ';
     const fields = [];
     const values = [];
+    const hasDateConclusion = updates.dateConclusion !== undefined;
 
-    addSimpleTaskFields(updates, fields, values);
-    addDoneField(updates, fields, values);
+    const simpleUpdates = [
+        { enabled: updates.title !== undefined, field: 'title = ?', value: updates.title },
+        { enabled: updates.category !== undefined, field: 'category = ?', value: updates.category },
+        {
+            enabled: hasDateConclusion,
+            field: 'date_conclusion = ?',
+            value: hasDateConclusion ? updates.dateConclusion || null : undefined
+        }
+    ];
 
-    const userError = await addUserField(updates, fields, values);
-    if (userError) {
-        return userError;
+    for (const update of simpleUpdates) {
+        if (!update.enabled) {
+            continue;
+        }
+
+        fields.push(update.field);
+        values.push(update.value);
+    }
+
+    if (updates.done !== undefined) {
+        fields.push('done = ?');
+        values.push(updates.done ? 1 : 0);
+
+        if (!hasDateConclusion) {
+            fields.push(updates.done ? 'date_conclusion = CURDATE()' : 'date_conclusion = NULL');
+        }
+    }
+
+    if (updates.userId !== undefined) {
+        const parsedUserId = Number.parseInt(updates.userId, 10);
+
+        if (Number.isNaN(parsedUserId)) {
+            return { error: 'userId deve ser número', status: 400 };
+        }
+
+        const user = await getUserById(parsedUserId);
+        if (!user) {
+            return { error: 'Utilizador não encontrado', status: 404 };
+        }
+
+        fields.push('user_id = ?');
+        values.push(parsedUserId);
     }
 
     if (fields.length === 0) {
         return { error: 'Envie ao menos um campo para atualização', status: 400 };
     }
 
+    query += fields.join(', ') + ' WHERE id = ?';
     values.push(id);
-    const [result] = await pool.query(`UPDATE tasks SET ${fields.join(', ')} WHERE id = ?`, values);
+    const [result] = await pool.query(query, values);
 
     if (result.affectedRows === 0) {
         return null;
@@ -200,7 +177,7 @@ export const getTasksByTagId = async (tagId) => {
         [tagId]
     );
 
-    return rows.map(mapTask);
+    return rows;
 };
 
 // busca tarefas de um utilizador
@@ -210,7 +187,7 @@ export const getTasksByUserId = async (userId) => {
         [userId]
     );
 
-    return rows.map(mapTask);
+    return rows;
 };
 
 // calcula estatísticas das tarefas
