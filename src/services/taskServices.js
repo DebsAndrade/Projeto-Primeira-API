@@ -7,7 +7,7 @@ export const getAllTasks = async ({ sort, search } = {}) => {
     const params = [];
 
     if (search) {
-        query += ' AND title LIKE ?';
+        query += ' WHERE title LIKE ?';
         params.push(`%${search}%`);
     }
 
