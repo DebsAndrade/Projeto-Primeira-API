@@ -1,8 +1,17 @@
 # Projeto API - Gestão de Tarefas
 
-API REST simples em Node.js + Express para gerir utilizadores, tarefas, tags e comentários.
+**Versão:** 2.0 | **Segunda Entrega**
 
-O projeto usa dados em memória (arrays nos services), sem base de dados persistente.
+API REST em Node.js + Express para gerir utilizadores, tarefas, tags e comentários com persistência de dados em base de dados SQL.
+
+## Novidades na Segunda Entrega
+
+- ✅ Integração com base de dados SQL
+- ✅ Schema definido com suporte completo para entidades (Utilizadores, Tarefas, Tags, Comentários)
+- ✅ Persistência de dados entre reinicializações
+- ✅ Validações aprimoradas
+- ✅ Middlewares de tratamento de erros
+- ✅ Documentação atualizada com exemplos de uso
 
 ## Autoria
 
@@ -11,10 +20,20 @@ O projeto usa dados em memória (arrays nos services), sem base de dados persist
 
 ## Tecnologias
 
-- Node.js
+- Node.js 18+
 - Express 5
 - JavaScript (ES Modules)
 - pnpm
+- Base de Dados SQL (PostgreSQL/MySQL/SQLite)
+
+## Base de Dados
+
+O projeto inclui um schema SQL em `database/schema_projeto_api.sql` com as seguintes tabelas:
+- `users` - Utilizadores do sistema
+- `tasks` - Tarefas a realizar
+- `tags` - Etiquetas para categorização
+- `task_tags` - Associação entre tarefas e tags
+- `comments` - Comentários nas tarefas
 
 ## Pré-requisitos
 
@@ -179,8 +198,10 @@ curl http://localhost:3000/tasks/1/comments
 
 ## Observações
 
-- Os dados são mantidos apenas em memória; ao reiniciar o servidor, as alterações são perdidas.
-- Existe middleware de log em todas as rotas, imprimindo data/hora, método e URL no terminal.
+- Os dados são persistidos em base de dados SQL
+- Existe middleware de log em todas as rotas, imprimindo data/hora, método e URL no terminal
+- Todas as validações ocorrem antes da persistência dos dados
+- O schema da base de dados deve ser importado antes de usar a API pela primeira vez
 
 ## Script disponível
 
