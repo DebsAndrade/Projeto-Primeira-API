@@ -1,85 +1,122 @@
-// array com os utilizadores guardados em memória
-let users = [
-    { id: 1, name: "Alice", email: "alice@example.com", active: true },
-    { id: 2, name: "Bob", email: "bob@example.com", active: true },
-    { id: 3, name: "Charlie", email: "charlie@example.com", active: true },
-    { id: 4, name: "Diana", email: "diana@example.com", active: true },
-    { id: 5, name: "Eve", email: "eve@example.com", active: true }
-];
+import pool from '../db.js';
 
-// busca todos os utilizadores e permite ordenar e procurar
-export const getAllUsers = ({ sort, search } = {}) => {
-    let result = [...users];
+// busca todos os utilizadores com filtros opcionais
+export const getAllUsers = async ({ sort, search } = {}) => {
+    let query = 'SELECT * FROM users';
+    const params = [];
 
+    // filtro por search no nome
     if (search) {
-        const term = search.toLowerCase();
-        result = result.filter((u) => u.name.toLowerCase().includes(term));
+        query += ' AND name LIKE ?';
+        params.push(`%${search}%`);
     }
 
+    // ordenação
     if (sort === 'asc') {
-        result.sort((a, b) => a.name.localeCompare(b.name));
+        query += ' ORDER BY name ASC';
     } else if (sort === 'desc') {
-        result.sort((a, b) => b.name.localeCompare(a.name));
+        query += ' ORDER BY name DESC';
     }
 
-    return result;
+    const [rows] = await pool.query(query, params);
+    return rows;
 };
 
 // busca um utilizador por ID
-export const getUserById = (id) => users.find((user) => user.id === Number.parseInt(id, 10));
+export const getUserById = async (id) => {
+    const query = 'SELECT id, name, email, active, created_at FROM users WHERE id = ?';
+    const [rows] = await pool.query(query, [id]);
+    return rows[0] || null;
+};
 
 // cria um novo utilizador
-export const createUser = (name, email) => {
-    const newUser = { id: users.length + 1, name, email, active: true };
-    users.push(newUser);
-    return newUser;
+export const createUser = async (name, email) => {
+    const query = 'INSERT INTO users (name, email, active) VALUES (?, ?, 1)';
+    const [result] = await pool.query(query, [name, email]);
+    return {
+        id: result.insertId,
+        name,
+        email,
+        active: true,
+        created_at: new Date().toISOString()
+    };
 };
 
 // atualiza as informações de um utilizador
-export const updateUser = (id, update) => {
-    const userIndex = users.findIndex((user) => user.id === Number.parseInt(id, 10));
-    if (userIndex === -1) {
-        return null;
-    }
+export const updateUser = async (id, update) => {
+    let query = 'UPDATE users SET ';
+    const fields = [];
+    const values = [];
 
     if (update.name !== undefined) {
-        users[userIndex].name = update.name;
+        fields.push('name = ?');
+        values.push(update.name);
     }
 
     if (update.email !== undefined) {
-        users[userIndex].email = update.email;
+        fields.push('email = ?');
+        values.push(update.email);
     }
 
     if (update.active !== undefined) {
-        users[userIndex].active = update.active;
+        fields.push('active = ?');
+        values.push(update.active ? 1 : 0);
     }
 
-    return users[userIndex];
+    if (fields.length === 0) {
+        return null;
+    }
+
+    query += fields.join(', ') + ' WHERE id = ?';
+    values.push(id);
+
+    const [result] = await pool.query(query, values);
+
+    if (result.affectedRows === 0) {
+        return null;
+    }
+
+    return getUserById(id);
 };
 
 // alterna o status ativo/inativo de um utilizador
-export const toggleUserActive = (id) => {
-    const user = users.find((u) => u.id === Number.parseInt(id, 10));
-    if (!user) return null;
-    user.active = !user.active;
-    return user;
+export const toggleUserActive = async (id) => {
+    const query = 'UPDATE users SET active = NOT active WHERE id = ?';
+    const [result] = await pool.query(query, [id]);
+
+    if (result.affectedRows === 0) {
+        return null;
+    }
+
+    return getUserById(id);
 };
 
-// remove um utilizador do array
-export const deleteUser = (id) => {
-    const previousLength = users.length;
-    users = users.filter((user) => user.id !== Number.parseInt(id, 10));
-    return users.length < previousLength;
+// remove um utilizador
+export const deleteUser = async (id) => {
+    const query = 'DELETE FROM users WHERE id = ?';
+    const [result] = await pool.query(query, [id]);
+    return result.affectedRows > 0;
 };
 
 // calcula estatísticas dos utilizadores
-export const getUserStats = () => {
-    const total = users.length;
-    const active = users.filter((u) => u.active).length;
+export const getUserStats = async () => {
+    const query = `
+        SELECT
+            COUNT(*) as total,
+            SUM(CASE WHEN active = 1 THEN 1 ELSE 0 END) as active,
+            SUM(CASE WHEN active = 0 THEN 1 ELSE 0 END) as inactive
+        FROM users
+    `;
+    const [rows] = await pool.query(query);
+    const { total, active, inactive } = rows[0];
+    const parsedTotal = Number(total) || 0;
+    const parsedActive = Number(active) || 0;
+    const parsedInactive = Number(inactive) || 0;
+
     return {
-        total,
-        active,
-        inactive: total - active,
-        percentageActive: total > 0 ? Math.round((active / total) * 100) : 0
+        total: parsedTotal,
+        active: parsedActive,
+        inactive: parsedInactive,
+        percentageActive: parsedTotal > 0 ? Math.round((parsedActive / parsedTotal) * 100) : 0
     };
 };

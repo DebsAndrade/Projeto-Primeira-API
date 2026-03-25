@@ -1,30 +1,30 @@
-// array com as tags guardadas em memória
-let tags = [
-    { id: 1, name: 'Urgente' },
-    { id: 2, name: 'Frontend' }
-];
+import pool from '../db.js';
 
 // retorna todas as tags
-export const getAllTags = () => tags;
+export const getAllTags = async () => {
+    const [rows] = await pool.query('SELECT id, name, created_at FROM tags ORDER BY id ASC');
+    return rows;
+};
 
 // busca uma tag pelo ID
-export const getTagById = (id) => tags.find((tag) => tag.id === Number.parseInt(id, 10));
+export const getTagById = async (id) => {
+    const [rows] = await pool.query('SELECT id, name, created_at FROM tags WHERE id = ?', [id]);
+    return rows[0] || null;
+};
 
 // cria uma nova tag
-export const createTag = (name) => {
-    const newTag = { id: tags.length + 1, name };
-    tags.push(newTag);
-    return newTag;
+export const createTag = async (name) => {
+    const [result] = await pool.query('INSERT INTO tags (name) VALUES (?)', [name]);
+    return await getTagById(result.insertId);
 };
 
 // apaga uma tag
-export const deleteTag = (id) => {
-    const parsedId = Number.parseInt(id, 10);
-    const tagToDelete = getTagById(parsedId);
+export const deleteTag = async (id) => {
+    const tagToDelete = await getTagById(id);
     if (!tagToDelete) {
         return null;
     }
 
-    tags = tags.filter((tag) => tag.id !== parsedId);
+    await pool.query('DELETE FROM tags WHERE id = ?', [id]);
     return tagToDelete;
 };
