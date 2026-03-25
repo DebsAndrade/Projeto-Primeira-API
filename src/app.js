@@ -1,5 +1,7 @@
 // importa express pra criar a API
 import express from 'express';
+// importa cors pra permitir requisições de outros domínios (útil pro frontend)
+import cors from 'cors';
 // importa as rotas de utilizadores, tarefas e tags
 import userRoutes from './routes/userRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
@@ -9,6 +11,13 @@ import { loggerMiddleware } from './middlewares/loggerMiddleware.js';
 
 // cria a aplicação express
 const app = express();
+
+// ativa o CORS pra permitir requisições de outros domínios (útil pro frontend)
+app.use(cors(
+    {
+        origin: "http://localhost:5173"  // Só permite seu frontend
+    }
+));
 
 // middleware pra aceitar JSON
 app.use(express.json());
