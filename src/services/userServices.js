@@ -7,7 +7,7 @@ export const getAllUsers = async ({ sort, search } = {}) => {
 
     // filtro por search no nome
     if (search) {
-        query += ' AND name LIKE ?';
+        query += ' WHERE name LIKE ?';
         params.push(`%${search}%`);
     }
 
