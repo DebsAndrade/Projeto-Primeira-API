@@ -1,4 +1,5 @@
 import { getTagById } from '../services/tagServices.js';
+import { notFound, serverError } from '../utils/helpers.js';
 
 // middleware que valida se a tag da rota existe
 export const checkTagExists = async (req, res, next) => {
@@ -7,13 +8,13 @@ export const checkTagExists = async (req, res, next) => {
         const tag = await getTagById(tagId);
 
         if (!tag) {
-            return res.status(404).json({ error: 'Tag não encontrada' });
+            return notFound(res, 'Tag não encontrada');
         }
 
         req.tag = tag;
         next();
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: 'Erro ao validar tag' });
+        return serverError(res, 'Erro ao validar tag');
     }
 };

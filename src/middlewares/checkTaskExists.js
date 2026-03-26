@@ -1,4 +1,5 @@
 import { getTaskById } from '../services/taskServices.js';
+import { notFound, serverError } from '../utils/helpers.js';
 
 // middleware que valida se a tarefa da rota existe
 export const checkTaskExists = async (req, res, next) => {
@@ -7,13 +8,13 @@ export const checkTaskExists = async (req, res, next) => {
         const task = await getTaskById(taskId);
 
         if (!task) {
-            return res.status(404).json({ error: 'Tarefa não encontrada' });
+            return notFound(res, 'Tarefa não encontrada');
         }
 
         req.task = task;
         next();
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: 'Erro ao validar tarefa' });
+        return serverError(res, 'Erro ao validar tarefa');
     }
 };
